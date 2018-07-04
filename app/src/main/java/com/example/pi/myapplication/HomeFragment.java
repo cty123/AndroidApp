@@ -1,12 +1,29 @@
 package com.example.pi.myapplication;
 
 import android.content.Context;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.ContactsContract;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.BaseAdapter;
+import android.widget.ListView;
+import android.widget.TextView;
+
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
+import java.util.ArrayList;
 
 
 /**
@@ -27,7 +44,11 @@ public class HomeFragment extends Fragment {
     private String mParam1;
     private String mParam2;
 
+    private ListView listView;
+
     private OnFragmentInteractionListener mListener;
+
+    private DatabaseReference database;
 
     public HomeFragment() {
         // Required empty public constructor
@@ -74,6 +95,47 @@ public class HomeFragment extends Fragment {
         }
     }
 
+    @Override
+    public void onViewCreated(final View view, @Nullable Bundle savedInstanceState) {
+        listView = getView().findViewById(R.id.list_room);
+
+        database = FirebaseDatabase.getInstance().getReference("Room");
+
+        database.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                display_data(dataSnapshot);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                Intent intent = new Intent(getActivity(), GameActivity.class);
+                startActivity(intent);
+            }
+        });
+    }
+
+    private void display_data(DataSnapshot dataSnapshot) {
+        ArrayList<Room> arrayList = new ArrayList<>();
+
+        for (DataSnapshot ds: dataSnapshot.getChildren()) {
+            Room rm = new Room();
+            rm.setName(ds.getValue(Room.class).getName());
+            rm.setOwner(ds.getValue(Room.class).getOwner());
+            arrayList.add(rm);
+        }
+
+        RoomAdapter ra = new RoomAdapter(arrayList);
+        listView.setAdapter(ra);
+    }
+
 //    @Override
 //    public void onAttach(Context context) {
 //        super.onAttach(context);
@@ -105,4 +167,42 @@ public class HomeFragment extends Fragment {
         // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
     }
+
+    class RoomAdapter extends BaseAdapter {
+        private ArrayList<Room> room_list;
+
+        public RoomAdapter(ArrayList<Room> room_list) {
+            this.room_list = room_list;
+        }
+
+        @Override
+        public int getCount() {
+            return this.room_list.size();
+        }
+
+        @Override
+        public Object getItem(int i) {
+            return null;
+        }
+
+        @Override
+        public long getItemId(int i) {
+            return 0;
+        }
+
+        @Override
+        public View getView(int i, View view, ViewGroup viewGroup) {
+
+            view = getLayoutInflater().inflate(R.layout.list_item, null);
+
+            TextView roomname = view.findViewById(R.id.textView_roomname);
+            TextView description = view.findViewById(R.id.textView_description);
+
+            roomname.setText(room_list.get(i).getName());
+            description.setText(room_list.get(i).getOwner());
+
+            return view;
+        }
+    }
+
 }

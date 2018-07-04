@@ -7,10 +7,7 @@ import android.support.design.widget.BottomNavigationView;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.MenuItem;
-import android.widget.Button;
 import android.widget.FrameLayout;
-
-import com.google.firebase.auth.FirebaseAuth;
 
 public class Main2Activity extends AppCompatActivity {
     private BottomNavigationView mMainNav;
